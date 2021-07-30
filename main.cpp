@@ -28,6 +28,11 @@ int main(int argc, char** argv)
 
     auto fd = open(vm["file"].as<boost::filesystem::path>().c_str(), O_RDONLY);
 
+    if (fd == -1) {
+        perror("failed to open file");
+        return -1;
+    }
+
     struct stat st = {};
     fstat(fd, &st);
 
