@@ -2,7 +2,7 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 
-#ifdef __unix__
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -12,7 +12,7 @@
 
 std::pair<uintptr_t, uintptr_t> map_file(const char* path)
 {
-#ifdef __unix__
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
     auto fd = open(path, O_RDONLY);
 
     if (fd == -1) {
