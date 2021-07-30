@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#elif (defined _WIN32 || defined _WIN64)
+#include <windows.h>
 #endif
 
 std::pair<uintptr_t, uintptr_t> map_file(const char* path)
@@ -29,6 +31,18 @@ std::pair<uintptr_t, uintptr_t> map_file(const char* path)
     }
 
     return { reinterpret_cast<uintptr_t>(mem), reinterpret_cast<uintptr_t>(mem) + st.st_size };
+#elif (defined _WIN32 || defined _WIN64)
+    auto handle = CreateFile(path, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+
+    if (handle == INVALID_HANDLE_VALUE) {
+        std::cout << "failed to open file, error=" << GetLastError() << std::endl;
+        return {};
+    }
+
+    auto file_size = GetFileSize(handle, nullptr);
+    auto file_mapping = CreateFileMapping(handle, nullptr, PAGE_READONLY, 0, file_size, nullptr);
+    auto mem = MapViewOfFile(file_mapping, FILE_MAP_READ, 0, 0, file_size);
+    return { reinterpret_cast<uintptr_t>(mem), reinterpret_cast<uintptr_t>(mem) + file_size };
 #endif
 }
 
