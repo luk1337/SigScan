@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
             triplet: x64-linux
@@ -19,6 +19,10 @@ jobs:
             vcpkgPackages: 'boost-program-options'
           - os: macos-latest
             triplet: x64-osx
+            vcpkgCommitId: 'fa1bbe097b26678e3fd992173b62279c071c422b'
+            vcpkgPackages: 'boost-program-options'
+          - os: windows-latest
+            triplet: x64-windows
             vcpkgCommitId: 'fa1bbe097b26678e3fd992173b62279c071c422b'
             vcpkgPackages: 'boost-program-options'
 
