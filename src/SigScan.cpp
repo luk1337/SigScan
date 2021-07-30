@@ -1,5 +1,4 @@
 #include "SigScan.h"
-#include <cctype>
 
 #pragma push_macro("NDEBUG")
 #undef NDEBUG
@@ -56,12 +55,13 @@ std::optional<uint8_t> SigScan::get_byte(const std::string_view& str)
 {
     assert(str.length() == 2);
 
-    constexpr auto is_hex_or_any = [](char c) { return c == '?' || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'); };
+    constexpr auto is_hex_or_any
+        = [](char c) { return c == '?' || (c >= '0' && c <= '9') || ((c & (~0x20)) >= 'A' && (c & (~0x20)) <= 'F'); };
 
-    auto first = static_cast<char>(std::tolower(str[0]));
+    auto first = str[0];
     assert(is_hex_or_any(first));
 
-    auto second = static_cast<char>(std::tolower(str[1]));
+    auto second = str[1];
     assert(is_hex_or_any(second));
 
     if (first == '?') {
