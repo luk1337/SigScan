@@ -1,9 +1,36 @@
 #include "SigScan.h"
 #include <boost/program_options.hpp>
-#include <fcntl.h>
 #include <iostream>
+
+#ifdef __unix__
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#endif
+
+std::pair<uintptr_t, uintptr_t> map_file(const char* path)
+{
+#ifdef __unix__
+    auto fd = open(path, O_RDONLY);
+
+    if (fd == -1) {
+        perror("failed to open file");
+        return {};
+    }
+
+    struct stat st = {};
+    fstat(fd, &st);
+
+    auto mem = mmap(nullptr, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+
+    if (mem == MAP_FAILED) {
+        perror("failed to map file");
+        return {};
+    }
+
+    return { reinterpret_cast<uintptr_t>(mem), reinterpret_cast<uintptr_t>(mem) + st.st_size };
+#endif
+}
 
 int main(int argc, char** argv)
 {
@@ -25,25 +52,12 @@ int main(int argc, char** argv)
 
     po::notify(vm);
 
-    auto fd = open(vm["file"].as<std::string>().c_str(), O_RDONLY);
+    auto [start_address, end_address] = map_file(vm["file"].as<std::string>().c_str());
 
-    if (fd == -1) {
-        perror("failed to open file");
-        return -1;
+    if (start_address == 0) {
+        return 0;
     }
 
-    struct stat st = {};
-    fstat(fd, &st);
-
-    auto mem = mmap(nullptr, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-
-    if (mem == MAP_FAILED) {
-        perror("failed to map file");
-        return -1;
-    }
-
-    auto start_address = reinterpret_cast<uintptr_t>(mem);
-    auto end_address = start_address + st.st_size;
     auto max = vm.count("max") ? std::make_optional(vm["max"].as<size_t>()) : std::nullopt;
     auto matches = SigScan::find(vm["pattern"].as<std::string>(), start_address, end_address, max);
 
