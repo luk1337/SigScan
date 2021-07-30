@@ -39,10 +39,29 @@ std::pair<uintptr_t, uintptr_t> map_file(const char* path)
         return {};
     }
 
-    auto file_size = GetFileSize(handle, nullptr);
-    auto file_mapping = CreateFileMapping(handle, nullptr, PAGE_READONLY, 0, file_size, nullptr);
-    auto mem = MapViewOfFile(file_mapping, FILE_MAP_READ, 0, 0, file_size);
-    return { reinterpret_cast<uintptr_t>(mem), reinterpret_cast<uintptr_t>(mem) + file_size };
+    LARGE_INTEGER file_size = {};
+
+    if (!GetFileSizeEx(handle, &file_size)) {
+        std::cout << "failed to get file size, error=" << GetLastError() << std::endl;
+        return {};
+    }
+
+    auto file_mapping = CreateFileMapping(handle, nullptr, PAGE_READONLY, 0, file_size.QuadPart, nullptr);
+
+    if (file_mapping == INVALID_HANDLE_VALUE) {
+        std::cout << "failed to create file mapping, error=" << GetLastError() << std::endl;
+        return {};
+    }
+
+    auto mem = MapViewOfFile(file_mapping, FILE_MAP_READ, 0, 0, file_size.QuadPart);
+
+    if (mem == nullptr) {
+        std::cout << "failed to map view of file, error=" << GetLastError() << std::endl;
+        return {};
+    }
+
+    return { reinterpret_cast<uintptr_t>(mem),
+        reinterpret_cast<uintptr_t>(mem) + static_cast<ptrdiff_t>(file_size.QuadPart) };
 #endif
 }
 
