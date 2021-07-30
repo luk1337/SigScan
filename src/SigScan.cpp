@@ -10,6 +10,7 @@ std::vector<uintptr_t> SigScan::find(
     const std::string_view& pattern, uintptr_t start_address, uintptr_t end_address, std::optional<size_t> max)
 {
     assert(start_address < end_address);
+    assert(!max.has_value() || *max > 0);
 
     auto sig = parse_pattern(pattern);
     std::vector<uintptr_t> addresses;
