@@ -1,5 +1,4 @@
 #include "SigScan.h"
-#include <string>
 
 #pragma push_macro("NDEBUG")
 #undef NDEBUG
@@ -54,7 +53,7 @@ SigScan::Signature SigScan::parse_pattern(const std::string_view& pattern)
         found = pattern.find_first_of(' ', pos);
         ret.emplace_back(get_byte(pattern.substr(pos, found - pos)));
         pos = found + 1;
-    } while (found != std::string::npos);
+    } while (found != std::string_view::npos);
 
     return ret;
 }
