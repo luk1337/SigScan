@@ -1,5 +1,4 @@
 #include "SigScan.h"
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <fcntl.h>
 #include <iostream>
@@ -12,7 +11,7 @@ int main(int argc, char** argv)
 
     po::options_description desc;
     desc.add_options()("help,h", "print usage message");
-    desc.add_options()("file,f", po::value<boost::filesystem::path>()->required(), "path to file");
+    desc.add_options()("file,f", po::value<std::string>()->required(), "path to file");
     desc.add_options()("pattern,p", po::value<std::string>()->required(), "IDA style code pattern");
     desc.add_options()("max,m", po::value<size_t>(), "maximum number of matches");
 
@@ -26,7 +25,7 @@ int main(int argc, char** argv)
 
     po::notify(vm);
 
-    auto fd = open(vm["file"].as<boost::filesystem::path>().c_str(), O_RDONLY);
+    auto fd = open(vm["file"].as<std::string>().c_str(), O_RDONLY);
 
     if (fd == -1) {
         perror("failed to open file");

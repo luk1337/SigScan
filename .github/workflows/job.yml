@@ -16,11 +16,11 @@ jobs:
           - os: ubuntu-latest
             triplet: x64-linux
             vcpkgCommitId: 'fa1bbe097b26678e3fd992173b62279c071c422b'
-            vcpkgPackages: 'boost-filesystem boost-program-options'
+            vcpkgPackages: 'boost-program-options'
           - os: macos-latest
             triplet: x64-osx
             vcpkgCommitId: 'fa1bbe097b26678e3fd992173b62279c071c422b'
-            vcpkgPackages: 'boost-filesystem boost-program-options'
+            vcpkgPackages: 'boost-program-options'
 
     steps:
       - uses: actions/checkout@v1
