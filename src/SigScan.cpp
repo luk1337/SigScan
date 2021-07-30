@@ -1,4 +1,5 @@
 #include "SigScan.h"
+#include <string>
 
 #pragma push_macro("NDEBUG")
 #undef NDEBUG
@@ -46,24 +47,30 @@ SigScan::Signature SigScan::parse_pattern(const std::string_view& pattern)
 
     Signature ret;
 
-    for (size_t i = 0; i < pattern.size(); i += 3) {
-        ret.emplace_back(get_byte(pattern.substr(i, 2)));
-    }
+    size_t pos = 0;
+    size_t found;
+
+    do {
+        found = pattern.find_first_of(' ', pos);
+        ret.emplace_back(get_byte(pattern.substr(pos, found - pos)));
+        pos = found + 1;
+    } while (found != std::string::npos);
 
     return ret;
 }
 
 std::optional<uint8_t> SigScan::get_byte(const std::string_view& str)
 {
-    assert(str.length() == 2);
+    assert(str.length() >= 1 && str.length() <= 2);
 
     constexpr auto is_hex_or_any
         = [](char c) { return c == '?' || (c >= '0' && c <= '9') || ((c & (~0x20)) >= 'A' && (c & (~0x20)) <= 'F'); };
 
     auto first = str[0];
     assert(is_hex_or_any(first));
+    assert(str.length() != 1 || first == '?');
 
-    auto second = str[1];
+    auto second = str.length() == 2 ? str[1] : '?';
     assert(is_hex_or_any(second));
 
     if (first == '?') {
