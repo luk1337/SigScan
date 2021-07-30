@@ -12,6 +12,8 @@ std::vector<uintptr_t> SigScan::find(
     assert(!max.has_value() || *max > 0);
 
     auto sig = parse_pattern(pattern);
+    assert(end_address - start_address >= sig.size());
+
     std::vector<uintptr_t> addresses;
 
     for (auto address = start_address; address <= end_address - sig.size(); ++address) {
