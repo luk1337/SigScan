@@ -30,7 +30,7 @@ std::vector<uintptr_t> SigScan::find(
 
 bool SigScan::sig_match(const Signature& signature, uintptr_t address)
 {
-    for (auto& byte : signature) {
+    for (const auto& byte : signature) {
         if (byte.has_value() && *byte != *reinterpret_cast<uint8_t*>(address)) {
             return false;
         }
