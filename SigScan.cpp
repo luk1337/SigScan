@@ -1,6 +1,10 @@
 #include "SigScan.h"
-#include <cassert>
 #include <cctype>
+
+#pragma push_macro("NDEBUG")
+#undef NDEBUG
+#include <cassert>
+#pragma pop_macro("NDEBUG")
 
 std::vector<uintptr_t> SigScan::find(
     const std::string_view& pattern, uintptr_t start_address, uintptr_t end_address, std::optional<size_t> max)
