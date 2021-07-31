@@ -85,15 +85,15 @@ int main(int argc, char** argv)
 
     po::notify(vm);
 
-    auto [start_address, end_address] = map_file(vm["file"].as<std::string>().c_str());
+    auto range = map_file(vm["file"].as<std::string>().c_str());
 
-    if (start_address == 0) {
+    if (range.first == 0) {
         return 0;
     }
 
     auto max = vm.count("max") ? std::make_optional(vm["max"].as<size_t>()) : std::nullopt;
-    SigScan::find(vm["pattern"].as<std::string>(), start_address, end_address, max, [&](uintptr_t match) {
-        std::cout << "0x" << std::uppercase << std::hex << (match - start_address) << std::endl;
+    SigScan::find(vm["pattern"].as<std::string>(), range.first, range.second, max, [&](uintptr_t match) {
+        std::cout << "0x" << std::uppercase << std::hex << (match - range.first) << std::endl;
     });
 
     return 0;
