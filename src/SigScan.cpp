@@ -61,7 +61,7 @@ SigScan::Signature SigScan::parse_pattern(const std::string_view& pattern)
 
 std::optional<uint8_t> SigScan::get_byte(const std::string_view& str)
 {
-    assert(str.length() >= 1 && str.length() <= 2);
+    assert(str.length() == 1 || str.length() == 2);
 
     auto first = str[0];
     assert(first == '?' || isxdigit(first));
