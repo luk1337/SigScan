@@ -6,8 +6,8 @@
 #include <cassert>
 #pragma pop_macro("NDEBUG")
 
-std::vector<uintptr_t> SigScan::find(
-    const std::string_view& pattern, uintptr_t start_address, uintptr_t end_address, std::optional<size_t> max)
+std::vector<uintptr_t> SigScan::find(const std::string_view& pattern, uintptr_t start_address, uintptr_t end_address,
+    std::optional<size_t> max, const std::function<void(uintptr_t)>& callback)
 {
     assert(start_address < end_address);
     assert(!max.has_value() || *max > 0);
@@ -20,6 +20,10 @@ std::vector<uintptr_t> SigScan::find(
     for (auto address = start_address; address <= end_address - sig.size(); ++address) {
         if (sig_match(sig, address)) {
             addresses.emplace_back(address);
+
+            if (callback != nullptr) {
+                callback(address);
+            }
 
             if (max.has_value() && addresses.size() == max.value()) {
                 break;

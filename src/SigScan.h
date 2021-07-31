@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <string_view>
 #include <vector>
@@ -8,7 +9,7 @@
 class SigScan {
 public:
     static std::vector<uintptr_t> find(const std::string_view& pattern, uintptr_t start_address, uintptr_t end_address,
-        std::optional<size_t> max = {});
+        std::optional<size_t> max = {}, const std::function<void(uintptr_t)>& callback = nullptr);
 
 private:
     using Signature = std::vector<std::optional<uint8_t>>;

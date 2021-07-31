@@ -92,11 +92,9 @@ int main(int argc, char** argv)
     }
 
     auto max = vm.count("max") ? std::make_optional(vm["max"].as<size_t>()) : std::nullopt;
-    auto matches = SigScan::find(vm["pattern"].as<std::string>(), start_address, end_address, max);
-
-    for (const auto& match : matches) {
+    SigScan::find(vm["pattern"].as<std::string>(), start_address, end_address, max, [&](uintptr_t match) {
         std::cout << "0x" << std::uppercase << std::hex << (match - start_address) << std::endl;
-    }
+    });
 
     return 0;
 }
