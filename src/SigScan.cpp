@@ -65,20 +65,11 @@ std::optional<uint8_t> SigScan::get_byte(const std::string_view& str)
 
     auto first = str[0];
     assert(first == '?' || isxdigit(first));
-    assert(str.length() != 1 || first == '?');
 
     auto second = str.length() == 2 ? str[1] : '?';
     assert(second == '?' || isxdigit(second));
 
-    if (first == '?') {
-        assert(second == '?');
-        return {};
-    }
-
-    if (second == '?') {
-        assert(first == '?');
-        return {};
-    }
+    assert(!(first == '?' && second != '?') && !(second == '?' && first != '?'));
 
     constexpr auto get_bits = [](char c) {
         if (c >= '0' && c <= '9') {
@@ -87,5 +78,5 @@ std::optional<uint8_t> SigScan::get_byte(const std::string_view& str)
         return (c & (~0x20)) - 'A' + 0xA;
     };
 
-    return get_bits(first) << 4 | get_bits(second);
+    return first == '?' ? std::nullopt : std::make_optional(get_bits(first) << 4 | get_bits(second));
 }
