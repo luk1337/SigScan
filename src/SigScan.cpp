@@ -1,5 +1,7 @@
 #include "SigScan.h"
 #include <cctype>
+#include <cstdio>
+#include <fstream>
 
 #pragma push_macro("NDEBUG")
 #undef NDEBUG
@@ -34,6 +36,22 @@ std::vector<uintptr_t> SigScan::find(const std::string_view& pattern, uintptr_t 
     return addresses;
 }
 
+void SigScan::patch(
+    const std::string& file, const std::vector<uintptr_t>& addresses, const std::string& bytes, uintptr_t start_address)
+{
+    auto f = std::fstream(file);
+    assert(f.good());
+
+    auto data = parse_bytes(bytes);
+
+    for (const auto& address : addresses) {
+        f.seekp(address - start_address, std::ios_base::beg);
+        f.write(data.data(), data.size());
+    }
+
+    f.close();
+}
+
 bool SigScan::sig_match(const Signature& signature, uintptr_t address)
 {
     for (const auto& byte : signature) {
@@ -43,6 +61,26 @@ bool SigScan::sig_match(const Signature& signature, uintptr_t address)
         ++address;
     }
     return true;
+}
+
+std::vector<char> SigScan::parse_bytes(const std::string_view& bytes)
+{
+    assert(!bytes.empty());
+
+    std::vector<char> ret;
+
+    size_t pos = 0;
+    size_t found;
+
+    do {
+        found = bytes.find_first_of(' ', pos);
+        auto byte = get_byte(bytes.substr(pos, found - pos));
+        assert(byte.has_value());
+        ret.emplace_back(*byte);
+        pos = found + 1;
+    } while (found != std::string_view::npos);
+
+    return ret;
 }
 
 SigScan::Signature SigScan::parse_pattern(const std::string_view& pattern)

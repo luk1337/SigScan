@@ -73,6 +73,7 @@ int main(int argc, char** argv)
     desc.add_options()("help,h", "print usage message");
     desc.add_options()("file,f", po::value<std::string>()->required(), "path to file");
     desc.add_options()("pattern,p", po::value<std::string>()->required(), "IDA style code pattern");
+    desc.add_options()("patch,P", po::value<std::string>(), "patch matches in place with given bytes");
     desc.add_options()("max,m", po::value<size_t>(), "maximum number of matches");
 
     po::variables_map vm;
@@ -92,9 +93,13 @@ int main(int argc, char** argv)
     }
 
     auto max = vm.count("max") ? std::make_optional(vm["max"].as<size_t>()) : std::nullopt;
-    SigScan::find(vm["pattern"].as<std::string>(), range.first, range.second, max, [&](uintptr_t match) {
+    auto matches = SigScan::find(vm["pattern"].as<std::string>(), range.first, range.second, max, [&](uintptr_t match) {
         std::cout << "0x" << std::uppercase << std::hex << (match - range.first) << std::endl;
     });
+
+    if (vm.count("patch")) {
+        SigScan::patch(vm["file"].as<std::string>(), matches, vm["patch"].as<std::string>(), range.first);
+    }
 
     return 0;
 }
