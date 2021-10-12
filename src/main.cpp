@@ -10,10 +10,10 @@
 #include <windows.h>
 #endif
 
-std::pair<uintptr_t, uintptr_t> map_file(const char* path)
+std::pair<uintptr_t, uintptr_t> map_file(const char* path, bool read_write)
 {
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-    auto fd = open(path, O_RDONLY);
+    auto fd = open(path, read_write ? O_RDWR : O_RDONLY);
 
     if (fd == -1) {
         perror("failed to open file");
@@ -23,7 +23,7 @@ std::pair<uintptr_t, uintptr_t> map_file(const char* path)
     struct stat st = {};
     fstat(fd, &st);
 
-    auto mem = mmap(nullptr, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    auto mem = mmap(nullptr, st.st_size, PROT_READ | (read_write ? PROT_WRITE : 0), MAP_SHARED, fd, 0);
 
     if (mem == MAP_FAILED) {
         perror("failed to map file");
@@ -32,7 +32,8 @@ std::pair<uintptr_t, uintptr_t> map_file(const char* path)
 
     return { reinterpret_cast<uintptr_t>(mem), reinterpret_cast<uintptr_t>(mem) + st.st_size };
 #elif (defined _WIN32 || defined _WIN64)
-    auto handle = CreateFile(path, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    auto handle = CreateFile(path, GENERIC_READ | (read_write ? GENERIC_WRITE : 0), 0, nullptr, OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL, nullptr);
 
     if (handle == INVALID_HANDLE_VALUE) {
         std::cout << "failed to open file, error=" << GetLastError() << std::endl;
@@ -46,14 +47,15 @@ std::pair<uintptr_t, uintptr_t> map_file(const char* path)
         return {};
     }
 
-    auto file_mapping = CreateFileMapping(handle, nullptr, PAGE_READONLY, 0, file_size.QuadPart, nullptr);
+    auto file_mapping = CreateFileMapping(
+        handle, nullptr, read_write ? PAGE_READWRITE : PAGE_READONLY, 0, file_size.QuadPart, nullptr);
 
     if (file_mapping == INVALID_HANDLE_VALUE) {
         std::cout << "failed to create file mapping, error=" << GetLastError() << std::endl;
         return {};
     }
 
-    auto mem = MapViewOfFile(file_mapping, FILE_MAP_READ, 0, 0, file_size.QuadPart);
+    auto mem = MapViewOfFile(file_mapping, read_write ? FILE_MAP_WRITE : FILE_MAP_READ, 0, 0, file_size.QuadPart);
 
     if (mem == nullptr) {
         std::cout << "failed to map view of file, error=" << GetLastError() << std::endl;
@@ -86,7 +88,7 @@ int main(int argc, char** argv)
 
     po::notify(vm);
 
-    auto range = map_file(vm["file"].as<std::string>().c_str());
+    auto range = map_file(vm["file"].as<std::string>().c_str(), vm.count("patch"));
 
     if (range.first == 0) {
         return 0;
@@ -98,7 +100,7 @@ int main(int argc, char** argv)
     });
 
     if (vm.count("patch")) {
-        SigScan::patch(vm["file"].as<std::string>(), matches, vm["patch"].as<std::string>(), range.first);
+        SigScan::patch(vm["file"].as<std::string>(), matches, vm["patch"].as<std::string>());
     }
 
     return 0;

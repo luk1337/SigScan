@@ -10,8 +10,7 @@ class SigScan {
 public:
     static std::vector<uintptr_t> find(const std::string_view& pattern, uintptr_t start_address, uintptr_t end_address,
         std::optional<size_t> max = {}, const std::function<void(uintptr_t)>& callback = nullptr);
-    static void patch(const std::string& file, const std::vector<uintptr_t>& addresses, const std::string& bytes,
-        uintptr_t start_address);
+    static void patch(const std::string& file, const std::vector<uintptr_t>& addresses, const std::string& bytes);
 
 private:
     using Signature = std::vector<std::optional<uint8_t>>;

@@ -1,6 +1,6 @@
 #include "SigScan.h"
 #include <cctype>
-#include <cstdio>
+#include <cstring>
 #include <fstream>
 
 #pragma push_macro("NDEBUG")
@@ -36,20 +36,13 @@ std::vector<uintptr_t> SigScan::find(const std::string_view& pattern, uintptr_t 
     return addresses;
 }
 
-void SigScan::patch(
-    const std::string& file, const std::vector<uintptr_t>& addresses, const std::string& bytes, uintptr_t start_address)
+void SigScan::patch(const std::string& file, const std::vector<uintptr_t>& addresses, const std::string& bytes)
 {
-    auto f = std::fstream(file);
-    assert(f.good());
-
     auto data = parse_bytes(bytes);
 
     for (const auto& address : addresses) {
-        f.seekp(address - start_address, std::ios_base::beg);
-        f.write(data.data(), data.size());
+        memcpy(reinterpret_cast<void*>(address), data.data(), data.size());
     }
-
-    f.close();
 }
 
 bool SigScan::sig_match(const Signature& signature, uintptr_t address)
