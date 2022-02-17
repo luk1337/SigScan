@@ -1,0 +1,7 @@
+{
+    "name": "sigscan",
+    "version-string": "1.0.0",
+    "dependencies": [
+        "boost-program-options"
+    ]
+}
