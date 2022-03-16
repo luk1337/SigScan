@@ -18,7 +18,7 @@
 #
 # - Finally, it runs CMake with CMakePreset.json and vcpkg's toolchain file to build the C++ sources with Ninja.
 name: hosted-ninja-vcpkg-install-autocache
-on: [push, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   job:
